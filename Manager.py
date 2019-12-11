@@ -22,7 +22,7 @@ class Manager:
             # Loading the bookmarks from storage file
             dragon.load_bookmarks("book.txt")
         except EOFError:
-            print("log: Edge case - storage file is empty. No bookmarks to load.")
+            print("log: Warning - storage file is empty. No bookmarks to load.")
 
         print(f"Log: Currently saved bookmarks: {dragon.bookmarks}")
 
@@ -30,6 +30,7 @@ class Manager:
 
         self.root.mainloop()
 
+    # Place the command buttons
     def place_buttons(self, root, keeper_object):
 
         # Increase window heigh (test
@@ -51,8 +52,8 @@ class Manager:
         remove_button.grid(row=4, column=1, padx=10, pady=5)
         remove_button.grid(rowspan=2)
 
+        # Highlight one of the bookmarks
         highlight_button = Button(root, text="Highlight Bookmark", command=lambda: keeper_object.highlight_bookmark_window(), width=15,height=3, bg="red", fg="white")
         highlight_button.grid(row=6, column=1, padx=10, pady=5)
         highlight_button.grid(rowspan=2)
-
 

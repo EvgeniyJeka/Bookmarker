@@ -1,26 +1,39 @@
 import webbrowser
 from tkinter import *
-
 import pickle
 
+storage_file_name = "book.txt"
 
-# Classes:
 
-# Keeper - keeps all the information that is used by the app
+# Bookmark class - represents one stored bookmark.
+class Bookmark:
+    name = ""
+    url = ""
+    highlighted = 0
+
+    def __init__(self, name, url):
+        self.name = name
+        self.url = url
+
+    def __repr__(self):
+        return f"{self.url}"
+
+
+# Keeper - keeps all the information that is used by the app.
 class Keeper:
-    # Default window size when there are no bookmarks
-    hight = 275
 
+    # Default window size when there are no bookmarks
+    height = 275
     width = 320
 
-    # First button row (used to place the buttons, each new button below it's predeccor)
+    # First button row (used to place the buttons, each new button below it's predecessor)
     button_row = 1
 
     # Used only if there are default buttons added for testing
     i = 0
 
     # The actual window size
-    size = '%sx%s' % (width, hight)
+    size = '%sx%s' % (width, height)
 
     # All currently existing bookmarks
     bookmarks = []
@@ -33,14 +46,14 @@ class Keeper:
     tkvar_1 = ""
 
     # "root" - tkinter object expected.
-    def __init__(self, hight, width, root):
-        self.hight = hight
+    def __init__(self, height, width, root):
+        self.height = height
         self.width = width
         self.root = root
 
     # Opens a new browser window, using the URL provided
     def go_to(self, path):
-        print("Going to: " + path)
+        print("Log: Going to " + path)
         webbrowser.open_new(path)
 
     # Add new bookmark - "Confirm" clicked
@@ -48,6 +61,7 @@ class Keeper:
         name = self.entry_1.get()
         url = self.entry_2.get()
         print("Name: {name}, URL: {url}".format(name=name, url=url))
+
         self.add_new_bookmark(name, url)
         self.add_last_bookmark(root)
         self.increase(root)
@@ -62,19 +76,19 @@ class Keeper:
         for button in self.buttons:
             if button["text"] == bookmark_to_remove:
                 button.config(state=DISABLED)
-                # button.config(bg="black",fg="red")
 
         for bookmark in self.bookmarks:
             if bookmark.name != bookmark_to_remove:
                 result_list.append(bookmark)
+
         self.bookmarks = result_list
         window.destroy()
-        self.save_bookmarks("book.txt", root, 1)
+        self.save_bookmarks(storage_file_name, root, 1)
 
     # Highlight a bookmark - "Confirm" clicked
     def highlight_bookmark(self, window, root):
         bookmark_to_highlight = self.tkvar_1.get()
-        print("Highlight: " + bookmark_to_highlight)
+        print("Log: Highlight - " + bookmark_to_highlight)
         result_list = []
 
         for button in self.buttons:
@@ -88,13 +102,13 @@ class Keeper:
 
         self.bookmarks = result_list
         window.destroy()
-        self.save_bookmarks("book.txt", root, 1)
+        self.save_bookmarks(storage_file_name, root, 1)
 
     # Close provided window
     def close_window(self, window):
         window.destroy()
 
-    ##Put all existing bookmarks on screen
+    # Puts all existing bookmarks on screen
     def add_all_bookmarks(self, root):
         for bookmark in self.bookmarks:
             path = bookmark.url
@@ -109,7 +123,7 @@ class Keeper:
             self.increase(root)
             self.i += 1
 
-    ##Put the last added bookmark on screen
+    # Put the last added bookmark on screen
     def add_last_bookmark(self, root):
         last = len(self.bookmarks) - 1
         print("Last: " + str(last))
@@ -121,13 +135,17 @@ class Keeper:
 
     # Save all bookmarks to file
     def save_bookmarks(self, file_name, window, close=None):
-        with open(file_name, "wb") as output:
-            pickle.dump(self.bookmarks, output, pickle.HIGHEST_PROTOCOL)
-            print("Logs: Saving content")
-            output.flush()
-            output.close()
-            if close is None:
-                window.destroy()
+        try:
+            with open(file_name, "wb") as output:
+                pickle.dump(self.bookmarks, output, pickle.HIGHEST_PROTOCOL)
+                print("Logs: Saving content")
+                output.flush()
+                output.close()
+                if close is None:
+                    window.destroy()
+
+        except PermissionError:
+            print(f"Log: Fatal Error. Can't save bookmarks. Have no permissions to write to {storage_file_name}")
 
     # Load all existing bookmarks from a file
     def load_bookmarks(self, file_name):
@@ -142,6 +160,8 @@ class Keeper:
             open(file_name, "w+")
             self.load_bookmarks(file_name)
 
+        except pickle.UnpicklingError:
+            print("Log: Fatal Error - the data in the storage file is corrupted.")
 
     # Add new bookmark
     def add_new_bookmark(self, name, url):
@@ -150,14 +170,14 @@ class Keeper:
 
     # Increases the window high by 30
     def increase(self, root):
-        self.hight += 30
-        self.size = '%sx%s' % (self.width, self.hight)
+        self.height += 30
+        self.size = '%sx%s' % (self.width, self.height)
         print(self.size)
         root.geometry(self.size)
 
-    ############################## New Bookmark Window #####################################
+    #              New Bookmark Window           #
 
-    # Opens the "New Bookmark" window with two buttons and two enteries.
+    # Opens the "New Bookmark" window with two buttons and two input fields.
     # User input provided here is handled in "handle_confirm".
     def add_new_boomark_window(self):
         secondary = Tk()
@@ -186,7 +206,7 @@ class Keeper:
 
         secondary.mainloop()
 
-    ############################## Delete Bookmark Window #####################################
+    #              Delete Bookmark Window              #
     # Opens the "Remove Bookmark" window with two buttons and drop down menu.
     # User input provided here is handled in "handle_cancel".
     def remove_bookmark_window(self):
@@ -194,10 +214,8 @@ class Keeper:
         tertiary.geometry("550x100")
 
         label_1 = Label(tertiary, text="Enter name:", fg="blue", font=("", 11))
-        # self.entry_1 = Entry(tertiary, width="70")
 
         label_1.grid(row=0, column=0, pady=6, sticky=E)
-        # self.entry_1.grid(row=0, column=1, pady=6)
 
         confirm_button = Button(tertiary, text="Confirm", command=lambda: self.handle_cancel(tertiary, self.root),
                                 width=20, bg="blue",
@@ -208,7 +226,7 @@ class Keeper:
         confirm_button.grid(row=3, column=3, pady=6, padx=90, sticky=W)
         cancel_button.grid(row=3, column=1, pady=6, sticky=E)
 
-        ############### Drop Down ############
+        #   Drop Down Menu #
 
         options = []
 
@@ -224,8 +242,7 @@ class Keeper:
 
         tertiary.mainloop()
 
-    ############################## Delete Bookmark Window - END #########################################
-    ############################# Highligh Bookmark Window #####################################
+    #           Highlight Bookmark Window         #
     # Opens the "Highlight Bookmark" window with two buttons and drop down menu.
     # The selected bookmark is highlighted. User input provided here is handled in "handle_cancel".
     def highlight_bookmark_window(self):
@@ -233,10 +250,7 @@ class Keeper:
         tertiary.geometry("550x100")
 
         label_1 = Label(tertiary, text="Enter name:", fg="blue", font=("", 11))
-        # self.entry_1 = Entry(tertiary, width="70")
-
         label_1.grid(row=0, column=0, pady=6, sticky=E)
-        # self.entry_1.grid(row=0, column=1, pady=6)
 
         confirm_button = Button(tertiary, text="Confirm", command=lambda: self.highlight_bookmark(tertiary, self.root),
                                 width=20, bg="blue",
@@ -247,7 +261,7 @@ class Keeper:
         confirm_button.grid(row=3, column=3, pady=6, padx=90, sticky=W)
         cancel_button.grid(row=3, column=1, pady=6, sticky=E)
 
-        ############### Drop Down ############
+        #   Drop Down Menu #
 
         options = []
 
@@ -262,17 +276,3 @@ class Keeper:
         menu.grid(columnspan=4)
 
         tertiary.mainloop()
-
-
-# Bookmark class
-class Bookmark:
-    name = ""
-    url = ""
-    highlighted = 0
-
-    def __init__(self, name, url):
-        self.name = name
-        self.url = url
-
-    def __repr__(self):
-        return f"{self.url}"
