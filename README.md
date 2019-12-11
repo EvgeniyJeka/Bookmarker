@@ -24,5 +24,7 @@ Application window size is updated when new bookmark is added.
 
 <img src="https://github.com/EvgeniyJeka/Bookmarker/blob/master/bookmarker_4.jpg" alt="Screenshot" width="300" />
 
-
 To run the app run the file "bookmarker_2.1.py" with Python.
+Newly added data is saved on exit - click on "Save & Exit" to shut down the app instead of closing the window.
+
+
